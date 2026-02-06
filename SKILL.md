@@ -10,12 +10,14 @@ description: 智能读取任意URL内容，支持微信公众号、小红书、�
 ## 默认保存目录
 
 ```
-/Users/ys/laoyang知识库/nickys/素材/
+./url_reader_save/
 ```
+
+保存在当前工作目录下的 `url_reader_save` 文件夹中。
 
 保存格式：
 ```
-素材/
+url_reader_save/
 └── 2026-01-30_文章标题/
     ├── content.md      # Markdown内容
     ├── img_01.webp     # 图片1
@@ -117,8 +119,16 @@ https://r.jina.ai/{原始URL}
 ### 方式2：命令行调用
 
 ```bash
-/url-reader https://example.com/article
+# 读取并保存到默认目录 ./url_reader_save/
+/url-reader https://example.com/article --save
+
+# 读取并保存到指定目录
+/url-reader https://example.com/article --save --output-dir /path/to/articles
 ```
+
+参数说明：
+- `--save`: 读取后自动保存内容和图片到本地
+- `--output-dir <dir>`: 指定保存目录（可选，默认当前项目路径下的 `./url_reader_save/`）
 
 ## 支持的平台
 

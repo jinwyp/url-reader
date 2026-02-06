@@ -23,8 +23,8 @@ SCRIPT_DIR = Path(__file__).parent
 DATA_DIR = SCRIPT_DIR.parent / "data"
 WECHAT_AUTH_FILE = DATA_DIR / "wechat_auth.json"
 
-# 默认保存目录
-DEFAULT_OUTPUT_DIR = "/Users/ys/laoyang知识库/nickys/素材"
+# 默认保存目录（当前工作目录下的 url_reader_save）
+DEFAULT_OUTPUT_DIR = os.path.join(os.getcwd(), "url_reader_save")
 
 
 def identify_platform(url: str) -> dict:
@@ -437,7 +437,7 @@ def extract_images_from_content(content: str) -> list:
     return all_images
 
 
-def download_image(url: str, save_dir: Path, index: int) -> str:
+def download_image(url: str, save_dir: Path, index: int) -> str | None:
     """下载图片并返回本地文件名"""
     try:
         headers = {
@@ -468,12 +468,12 @@ def download_image(url: str, save_dir: Path, index: int) -> str:
         return None
 
 
-def save_content(content: str, url: str, platform_name: str = "", output_dir: str = None, title: str = None, verbose: bool = True) -> dict:
+def save_content(content: str, url: str, platform_name: str = "", output_dir: str | None = None, title: str | None = None, verbose: bool = True) -> dict:
     """
     保存内容到本地
     """
-    output_dir = Path(output_dir or DEFAULT_OUTPUT_DIR)
-    output_dir.mkdir(parents=True, exist_ok=True)
+    output_path = Path(output_dir or DEFAULT_OUTPUT_DIR)
+    output_path.mkdir(parents=True, exist_ok=True)
 
     if not title:
         title = extract_title_from_content(content)
@@ -481,7 +481,7 @@ def save_content(content: str, url: str, platform_name: str = "", output_dir: st
     date_str = datetime.now().strftime("%Y-%m-%d")
     folder_name = f"{date_str}_{sanitize_filename(title)}"
 
-    content_dir = output_dir / folder_name
+    content_dir = output_path / folder_name
     content_dir.mkdir(parents=True, exist_ok=True)
 
     images = extract_images_from_content(content)
@@ -529,7 +529,7 @@ images: {len(image_mapping)}
     }
 
 
-def read_and_save(url: str, output_dir: str = None, verbose: bool = True) -> dict:
+def read_and_save(url: str, output_dir: str | None = None, verbose: bool = True) -> dict:
     """
     读取URL内容并保存到本地
     """
@@ -553,6 +553,14 @@ def read_and_save(url: str, output_dir: str = None, verbose: bool = True) -> dic
     return result
 
 
+def parse_output_dir(args: list) -> str | None:
+    """从命令行参数中解析 --output-dir 的值"""
+    for i, arg in enumerate(args):
+        if arg == '--output-dir' and i + 1 < len(args):
+            return args[i + 1]
+    return None
+
+
 def main():
     if len(sys.argv) < 2:
         print("=" * 60)
@@ -561,10 +569,12 @@ def main():
         print("\n用法:")
         print("  python url_reader.py <url>              # 读取并显示")
         print("  python url_reader.py <url> --save       # 读取并保存")
+        print("  python url_reader.py <url> --save --output-dir <dir>  # 保存到指定目录")
         print("\n示例:")
         print("  python url_reader.py https://mp.weixin.qq.com/s/xxxxx --save")
-        print("\n保存目录:")
-        print(f"  {DEFAULT_OUTPUT_DIR}")
+        print("  python url_reader.py https://mp.weixin.qq.com/s/xxxxx --save --output-dir /tmp/articles")
+        print("\n默认保存目录:")
+        print(f"  ./url_reader_save/")
         print("\n策略优先级:")
         print("  1. Firecrawl (需要 API Key)")
         print("  2. Jina Reader (免费)")
@@ -576,13 +586,14 @@ def main():
 
     url = sys.argv[1]
     save_mode = '--save' in sys.argv
+    output_dir = parse_output_dir(sys.argv)
 
     print(f"\n{'=' * 60}")
     print(f"正在读取: {url}")
     print(f"{'=' * 60}\n")
 
     if save_mode:
-        result = read_and_save(url)
+        result = read_and_save(url, output_dir=output_dir)
         if result.get('success') and result.get('save'):
             print(f"\n{'=' * 60}")
             print("✅ 读取并保存成功")
