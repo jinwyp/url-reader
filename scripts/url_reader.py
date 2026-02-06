@@ -23,8 +23,21 @@ SCRIPT_DIR = Path(__file__).parent
 DATA_DIR = SCRIPT_DIR.parent / "data"
 WECHAT_AUTH_FILE = DATA_DIR / "wechat_auth.json"
 
-# 默认保存目录（当前工作目录下的 url_reader_save）
-DEFAULT_OUTPUT_DIR = os.path.join(os.getcwd(), "url_reader_save")
+# 默认保存目录（当前工作项目路径下的 url_reader_save）
+def _get_project_dir() -> str:
+    """获取项目根目录（兼容 Claude Code skill 调用方式）
+
+    skill 调用时工作目录为 <project>/.claude/skills/url-reader/，
+    需要回溯到项目根目录。
+    """
+    script_path = Path(__file__).resolve().parent  # scripts/
+    skill_root = script_path.parent  # url-reader/
+    # 检查是否在 .claude/skills/<skill-name>/ 结构中
+    if skill_root.parent.name == 'skills' and skill_root.parent.parent.name == '.claude':
+        return str(skill_root.parent.parent.parent)
+    return os.getcwd()
+
+DEFAULT_OUTPUT_DIR = os.path.join(_get_project_dir(), "url_reader_save")
 
 
 def identify_platform(url: str) -> dict:
@@ -472,7 +485,13 @@ def save_content(content: str, url: str, platform_name: str = "", output_dir: st
     """
     保存内容到本地
     """
-    output_path = Path(output_dir or DEFAULT_OUTPUT_DIR)
+    if output_dir:
+        output_path = Path(output_dir)
+        # 相对路径基于项目根目录解析，而非 cwd（兼容 skill 调用）
+        if not output_path.is_absolute():
+            output_path = Path(_get_project_dir()) / output_path
+    else:
+        output_path = Path(DEFAULT_OUTPUT_DIR)
     output_path.mkdir(parents=True, exist_ok=True)
 
     if not title:
