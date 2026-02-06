@@ -589,6 +589,7 @@ def main():
     output_dir = parse_output_dir(sys.argv)
 
     print(f"\n{'=' * 60}")
+    print(f"是否保存: {save_mode}")
     print(f"正在读取: {url}")
     print(f"{'=' * 60}\n")
 

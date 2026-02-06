@@ -114,6 +114,7 @@ https://r.jina.ai/{原始URL}
 用户：帮我读取这个链接 https://mp.weixin.qq.com/s/xxxxx
 用户：看看这个小红书 https://www.xiaohongshu.com/explore/xxxxx
 用户：读一下这个网页 https://example.com/article
+用户：抓取页面 https://example.com/article
 ```
 
 ### 方式2：命令行调用
@@ -129,6 +130,30 @@ https://r.jina.ai/{原始URL}
 参数说明：
 - `--save`: 读取后自动保存内容和图片到本地
 - `--output-dir <dir>`: 指定保存目录（可选，默认当前项目路径下的 `./url_reader_save/`）
+
+### 方式3：UV Run 调用（推荐）
+
+使用 [UV](https://github.com/astral-sh/uv) 包管理工具运行：
+
+```bash
+# 读取并保存到默认目录 ./url_reader_save/
+uv run python scripts/url_reader.py https://example.com/article --save
+
+# 读取并保存到指定目录
+uv run python scripts/url_reader.py https://example.com/article --save --output-dir /path/to/articles
+```
+
+**优势**：
+- 无需手动激活虚拟环境
+- 自动管理依赖和环境
+- 更快的执行速度
+- 跨平台兼容性更好
+
+**前置要求**：
+```bash
+# 安装 UV（如果尚未安装）
+pip install uv
+```
 
 ## 支持的平台
 
@@ -227,6 +252,29 @@ url-reader/
 
 ## 依赖安装
 
+### 使用 UV（推荐）安装
+
+**前置要求**：
+```bash
+# 安装 UV（如果尚未安装）
+curl -LsSf https://astral.sh/uv/install.sh | sh
+```
+
+
+```bash
+cd ~/.claude/skills/url-reader
+uv venv
+source .venv/bin/activate
+
+# 核心依赖
+uv pip install firecrawl-py requests 
+uv pip install playwright
+playwright install chromium
+
+```
+
+
+### 使用 pip 安装
 ```bash
 cd ~/.claude/skills/url-reader
 python3 -m venv .venv
@@ -239,6 +287,7 @@ pip install firecrawl-py requests
 pip install playwright
 playwright install chromium
 ```
+
 
 ## 常见问题
 
